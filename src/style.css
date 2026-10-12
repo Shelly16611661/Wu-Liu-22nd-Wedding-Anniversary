@@ -15,3 +15,33 @@
 @media(max-width:700px){.album-wrap>.round-button{width:44px;height:44px}.doll-controls .round-button{width:44px;height:44px}}
 @media(max-width:700px){.stage-light{inset:-30px -20px 0}.pedestal-shadow{max-width:100%}}
 @media(max-width:700px){.heart-scene .chapter-intro h2 br{display:block}.album-wrap{position:relative;padding:0 15px}.album-wrap>.round-button{position:absolute;z-index:2;top:calc(50% - 22px)}.album-prev{left:-22px}.album-next{right:-22px}}
+/* 書頁依照片比例調整，移除相框內大片留白。 */
+.album-book {
+  flex: none;
+  max-width: none;
+}
+
+.album-book .paper-page {
+  flex: none;
+  padding: 14px 12px 26px;
+}
+
+.album-book .photo-mat {
+  padding: 0;
+  outline-offset: 3px;
+}
+
+.album-book .photo-mat img {
+  object-fit: contain;
+}
+
+.album-book .page-number {
+  bottom: 7px;
+  left: 13px;
+  font-size: 9px;
+}
+
+.album-book .right-page .page-number {
+  left: auto;
+  right: 13px;
+}
