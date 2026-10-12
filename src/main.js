@@ -1,4 +1,5 @@
 import './style.css';
+import photoSizes from './photo-sizes.json';
 
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => [...document.querySelectorAll(s)];
@@ -83,6 +84,71 @@ function preloadNearby() {
   }
   for (const i of cache.keys()) if (!wanted.has(i)) cache.delete(i);
 }
+// 依照片比例調整書頁，不再使用固定寬版相簿。
+function fitAlbumToPhotos() {
+  if (currentScene !== 'album') return;
+
+  const wrap = $('.album-wrap');
+  const count = pageStep();
+
+  const ratios = photoSizes
+    .slice(page, page + count)
+    .map(([width, height]) => width / height);
+
+  const wrapStyle = getComputedStyle(wrap);
+
+  const padding =
+    parseFloat(wrapStyle.paddingLeft) +
+    parseFloat(wrapStyle.paddingRight);
+
+  const controls = mobile.matches
+    ? 0
+    : $('.album-prev').offsetWidth +
+      $('.album-next').offsetWidth +
+      2 * parseFloat(wrapStyle.columnGap);
+
+  const availableWidth = wrap.clientWidth - padding - controls;
+
+  // 左右各 12px 紙邊，加上左右各 1px 金框。
+  const horizontalBorder = 26;
+
+  // 上方 14px、下方頁碼區 26px，加上上下金框。
+  const verticalBorder = 42;
+
+  const desiredHeight = mobile.matches
+    ? Math.min(560, innerHeight * 0.58)
+    : Math.min(540, Math.max(240, innerHeight - 440));
+
+  const imageHeight = Math.max(
+    1,
+    Math.min(
+      desiredHeight,
+      (availableWidth - count * horizontalBorder) /
+        ratios.reduce((sum, ratio) => sum + ratio, 0)
+    )
+  );
+
+  const widths = ratios.map(
+    ratio => imageHeight * ratio + horizontalBorder
+  );
+
+  const book = $('#album-book');
+
+  book.style.width =
+    `${widths.reduce((sum, width) => sum + width, 0)}px`;
+
+  book.style.height = `${imageHeight + verticalBorder}px`;
+
+  $('.left-page').style.width = `${widths[0]}px`;
+
+  $('.right-page').style.width =
+    count === 2 ? `${widths[1]}px` : '';
+
+  $('.binding').style.left = `${widths[0]}px`;
+}
+
+window.addEventListener('resize', fitAlbumToPhotos);
+
 function renderPages() {
   page = Math.min(page, 20 - pageStep());
   if (!mobile.matches) page -= page % 2;
@@ -99,6 +165,7 @@ function renderPages() {
   $('.album-prev').disabled = page === 0;
   $('.album-next').disabled = page >= 20 - pageStep();
   $('.album-tip').textContent = mobile.matches ? '左右滑動 · 輕觸箭頭翻閱' : '拖曳書頁 · 滾動翻閱';
+    fitAlbumToPhotos();
   preloadNearby();
 }
 function turnPage(direction) {
